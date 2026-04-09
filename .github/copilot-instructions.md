@@ -9,3 +9,4 @@
   - Models should use readable entity names like `UserInfo`, `ProductRecord`, `SystemConfig`, `Permission`, `ProductState`.
   - Common should use helper/factory names like `DbConnectionFactory`, `ConfigHelper`, `LogHelper`, `JsonHelper`, `FileHelper`. 
 - Prefer规范、易读的命名。
+- 在枚举中直接使用中文名称，而不是维护单独的UI显示映射，例如`List<KeyValuePair<string, Permission>>`。

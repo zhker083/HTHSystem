@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Windows.Forms;
 using BLL;
 using Models;
@@ -21,16 +19,7 @@ namespace HTHSystem
 
         private void InitializePermissionOptions()
         {
-            List<KeyValuePair<string, Permission>> permissions = new List<KeyValuePair<string, Permission>>
-            {
-                new KeyValuePair<string, Permission>("员工", Permission.Staff),
-                new KeyValuePair<string, Permission>("技术员", Permission.Technician),
-                new KeyValuePair<string, Permission>("工程师", Permission.Engineer)
-            };
-
-            cmbPermission.DisplayMember = "Key";
-            cmbPermission.ValueMember = "Value";
-            cmbPermission.DataSource = permissions;
+            cmbPermission.DataSource = Enum.GetValues(typeof(Permission));
             cmbPermission.SelectedIndex = 0;
         }
 
@@ -70,7 +59,7 @@ namespace HTHSystem
                 }
 
                 cmbPermission.SelectedValue = user.Permission;
-                ShowMessage(string.Format("登录成功。账号：{0}，权限：{1}。", user.Account, GetPermissionText(user.Permission)));
+                ShowMessage(string.Format("登录成功。账号：{0}，权限：{1}。", user.Account, user.Permission));
             });
         }
 
@@ -97,7 +86,7 @@ namespace HTHSystem
                 txtAccount.Text = user.Account;
                 cmbPermission.SelectedValue = user.Permission;
                 txtPassword.Clear();
-                ShowMessage(string.Format("查询成功。账号：{0}，权限：{1}。", user.Account, GetPermissionText(user.Permission)));
+                ShowMessage(string.Format("查询成功。账号：{0}，权限：{1}。", user.Account, user.Permission));
             });
         }
 
@@ -153,19 +142,5 @@ namespace HTHSystem
             txtMessage.Text = message;
         }
 
-        private static string GetPermissionText(Permission permission)
-        {
-            switch (permission)
-            {
-                case Permission.Staff:
-                    return "员工";
-                case Permission.Technician:
-                    return "技术员";
-                case Permission.Engineer:
-                    return "工程师";
-                default:
-                    return "未知";
-            }
-        }
     }
 }
