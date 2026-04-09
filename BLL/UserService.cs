@@ -1,22 +1,23 @@
 using System;
 using System.Data;
-using DAL;
 using Models;
+using UserRepositoryContract = DAL.IUserRepository;
+using UserRepositoryImpl = DAL.UserRepository;
 
 namespace BLL
 {
-    public class UserBll : IUserBll
+    public class UserService : IUserService
     {
-        private readonly IUserDal _userDal;
+        private readonly UserRepositoryContract _userRepository;
 
-        public UserBll()
-            : this(new UserDal())
+        public UserService()
+            : this(new UserRepositoryImpl())
         {
         }
 
-        public UserBll(IUserDal userDal)
+        public UserService(UserRepositoryContract userRepository)
         {
-            _userDal = userDal ?? throw new ArgumentNullException(nameof(userDal));
+            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         }
 
         public int Register(UserInfo user)
@@ -36,35 +37,35 @@ namespace BLL
                 throw new ArgumentException("密码不能为空。", nameof(user));
             }
 
-            if (_userDal.Exists(user.Account))
+            if (_userRepository.Exists(user.Account))
             {
                 throw new InvalidOperationException("账号已存在。请更换账号后再试。");
             }
 
-            return _userDal.Register(user);
+            return _userRepository.Register(user);
         }
 
         public int Delete(string account)
         {
             ValidateAccount(account);
-            return _userDal.Delete(account);
+            return _userRepository.Delete(account);
         }
 
         public bool Exists(string account)
         {
             ValidateAccount(account);
-            return _userDal.Exists(account);
+            return _userRepository.Exists(account);
         }
 
         public UserInfo GetByAccount(string account)
         {
             ValidateAccount(account);
-            return _userDal.GetByAccount(account);
+            return _userRepository.GetByAccount(account);
         }
 
         public DataTable GetList()
         {
-            return _userDal.GetList();
+            return _userRepository.GetList();
         }
 
         public UserInfo Login(string account, string password)
@@ -76,7 +77,7 @@ namespace BLL
                 throw new ArgumentException("密码不能为空。", nameof(password));
             }
 
-            return _userDal.Login(account, password);
+            return _userRepository.Login(account, password);
         }
 
         private static void ValidateAccount(string account)

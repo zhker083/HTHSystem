@@ -1,6 +1,6 @@
 namespace Models
 {
-    public enum UserPermission
+    public enum Permission
     {
         Staff = 1,
         Technician = 2,

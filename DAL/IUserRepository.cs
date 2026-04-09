@@ -1,20 +1,15 @@
 using System.Data;
 using Models;
 
-namespace BLL
+namespace DAL
 {
-    public interface IUserBll
+    public interface IUserRepository
     {
         int Register(UserInfo user);
-
         int Delete(string account);
-
         bool Exists(string account);
-
         UserInfo GetByAccount(string account);
-
         DataTable GetList();
-
         UserInfo Login(string account, string password);
     }
 }

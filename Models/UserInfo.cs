@@ -6,6 +6,6 @@ namespace Models
 
         public string Password { get; set; }
 
-        public UserPermission Permission { get; set; }
+        public Permission Permission { get; set; }
     }
 }

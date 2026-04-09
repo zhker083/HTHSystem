@@ -9,7 +9,7 @@ namespace DAL
     /// <summary>
     /// 用户数据访问类：负责用户的增删查和登录校验。
     /// </summary>
-    public class UserDal : IUserDal
+    public class UserRepository : IUserRepository
     {
         /// <summary>
         /// 注册用户。

@@ -9,11 +9,11 @@ namespace HTHSystem
 {
     public partial class MainForm : Form
     {
-        private readonly IUserBll _userBll;
+        private readonly IUserService _userService;
 
         public MainForm()
         {
-            _userBll = new UserBll();
+            _userService = new UserService();
             InitializeComponent();
             InitializePermissionOptions();
             LoadUserList();
@@ -21,11 +21,11 @@ namespace HTHSystem
 
         private void InitializePermissionOptions()
         {
-            List<KeyValuePair<string, UserPermission>> permissions = new List<KeyValuePair<string, UserPermission>>
+            List<KeyValuePair<string, Permission>> permissions = new List<KeyValuePair<string, Permission>>
             {
-                new KeyValuePair<string, UserPermission>("员工", UserPermission.Staff),
-                new KeyValuePair<string, UserPermission>("技术员", UserPermission.Technician),
-                new KeyValuePair<string, UserPermission>("工程师", UserPermission.Engineer)
+                new KeyValuePair<string, Permission>("员工", Permission.Staff),
+                new KeyValuePair<string, Permission>("技术员", Permission.Technician),
+                new KeyValuePair<string, Permission>("工程师", Permission.Engineer)
             };
 
             cmbPermission.DisplayMember = "Key";
@@ -36,7 +36,7 @@ namespace HTHSystem
 
         private void LoadUserList()
         {
-            dgvUsers.DataSource = _userBll.GetList();
+            dgvUsers.DataSource = _userService.GetList();
             dgvUsers.ClearSelection();
         }
 
@@ -48,10 +48,10 @@ namespace HTHSystem
                 {
                     Account = txtAccount.Text.Trim(),
                     Password = txtPassword.Text,
-                    Permission = (UserPermission)cmbPermission.SelectedValue
+                    Permission = (Permission)cmbPermission.SelectedValue
                 };
 
-                int result = _userBll.Register(user);
+                int result = _userService.Register(user);
                 LoadUserList();
                 txtPassword.Clear();
                 ShowMessage(result > 0 ? "注册成功，已写入数据库。" : "注册失败，没有写入任何记录。");
@@ -62,7 +62,7 @@ namespace HTHSystem
         {
             ExecuteAction(() =>
             {
-                UserInfo user = _userBll.Login(txtAccount.Text.Trim(), txtPassword.Text);
+                UserInfo user = _userService.Login(txtAccount.Text.Trim(), txtPassword.Text);
                 if (user == null)
                 {
                     ShowMessage("登录失败，账号或密码错误。");
@@ -78,7 +78,7 @@ namespace HTHSystem
         {
             ExecuteAction(() =>
             {
-                bool exists = _userBll.Exists(txtAccount.Text.Trim());
+                bool exists = _userService.Exists(txtAccount.Text.Trim());
                 ShowMessage(exists ? "账号已存在。" : "账号不存在。");
             });
         }
@@ -87,7 +87,7 @@ namespace HTHSystem
         {
             ExecuteAction(() =>
             {
-                UserInfo user = _userBll.GetByAccount(txtAccount.Text.Trim());
+                UserInfo user = _userService.GetByAccount(txtAccount.Text.Trim());
                 if (user == null)
                 {
                     ShowMessage("未查询到该账号。", true);
@@ -105,7 +105,7 @@ namespace HTHSystem
         {
             ExecuteAction(() =>
             {
-                int result = _userBll.Delete(txtAccount.Text.Trim());
+                int result = _userService.Delete(txtAccount.Text.Trim());
                 LoadUserList();
                 txtPassword.Clear();
                 ShowMessage(result > 0 ? "删除成功。" : "未删除任何记录，请确认账号是否存在。", true);
@@ -153,15 +153,15 @@ namespace HTHSystem
             txtMessage.Text = message;
         }
 
-        private static string GetPermissionText(UserPermission permission)
+        private static string GetPermissionText(Permission permission)
         {
             switch (permission)
             {
-                case UserPermission.Staff:
+                case Permission.Staff:
                     return "员工";
-                case UserPermission.Technician:
+                case Permission.Technician:
                     return "技术员";
-                case UserPermission.Engineer:
+                case Permission.Engineer:
                     return "工程师";
                 default:
                     return "未知";
