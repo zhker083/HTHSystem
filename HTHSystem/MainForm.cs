@@ -1,5 +1,9 @@
 ﻿using System;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
 using System.Windows.Forms;
+using System.Windows.Forms.DataVisualization.Charting;
 using BLL;
 using CommonLogHelper = LogHelper.LogHelper;
 using CommonLogLevel = LogHelper.LogLevel;
@@ -10,22 +14,47 @@ namespace HTHSystem
     public partial class MainForm : Form
     {
         private readonly IUserService _userService;
+        private Button[] _navigationButtons;
+        private Panel[] _modulePanels;
+        private int _currentModuleIndex;
 
         public MainForm()
         {
-            _userService = new UserService();
+            bool isDesignMode = IsDesignMode();
+            _userService = isDesignMode ? null : (IUserService)new UserService();
             InitializeComponent();
+
+            if (isDesignMode)
+            {
+                return;
+            }
+
             InitializeLogOutput();
             InitializePermissionOptions();
+            InitializeModuleData();
             InitializeNavigation();
             InitializeClock();
             LoadUserList();
             CommonLogHelper.LogInfo("主界面已初始化。");
         }
 
+        private static bool IsDesignMode()
+        {
+            return LicenseManager.UsageMode == LicenseUsageMode.Designtime;
+        }
+
+        private void InitializeModuleData()
+        {
+            InitializeDataModule();
+            InitializeMonitorModule();
+            InitializeSettingModule();
+        }
+
         private void InitializeNavigation()
         {
-            ShowModule(panelUserModule, btnNavUser);
+            _navigationButtons = new[] { btnNavMonitor, btnNavData, btnNavDevice, btnNavUser, btnNavSetting };
+            _modulePanels = new[] { panelMonitorModule, panelDataModule, panelDeviceModule, panelUserModule, panelSettingModule };
+            ShowModule(3);
             lblSystemStatusValue.Text = "已启动";
         }
 
@@ -44,6 +73,99 @@ namespace HTHSystem
         {
             cmbPermission.DataSource = Enum.GetValues(typeof(Permission));
             cmbPermission.SelectedIndex = 0;
+        }
+
+        private void InitializeDataModule()
+        {
+            dtpDataStart.Value = DateTime.Today;
+            dtpDataEnd.Value = DateTime.Today;
+            checkBoxDataOk.Checked = true;
+            checkBoxDataNg.Checked = false;
+            dgvProductData.DataSource = CreateProductDataTableSchema();
+            dgvProductData.ClearSelection();
+        }
+
+        private void InitializeMonitorModule()
+        {
+            lblMonitorTotalValue.Text = "--";
+            lblMonitorGoodRateValue.Text = "--";
+            lblMonitorNgRateValue.Text = "--";
+            dgvMonitorSummary.DataSource = CreateMonitorSummaryTableSchema();
+            dgvMonitorSummary.ClearSelection();
+            txtModifyLog.Clear();
+            txtAlarmLog.Clear();
+            InitializeMonitorChart();
+        }
+
+        private void InitializeSettingModule()
+        {
+            dgvSettings.DataSource = CreateSettingTableSchema();
+            dgvSettings.ClearSelection();
+            lblSettingSelectedName.Text = string.Empty;
+            txtSettingValue.Clear();
+            txtSettingDescription.Clear();
+        }
+
+        private void InitializeMonitorChart()
+        {
+            chartMonitorTrend.Series.Clear();
+            chartMonitorTrend.ChartAreas.Clear();
+            chartMonitorTrend.Legends.Clear();
+
+            ChartArea chartArea = new ChartArea("MainArea");
+            chartArea.BackColor = Color.FromArgb(18, 63, 111);
+            chartArea.AxisX.LineColor = Color.FromArgb(140, 180, 220);
+            chartArea.AxisY.LineColor = Color.FromArgb(140, 180, 220);
+            chartArea.AxisX.LabelStyle.ForeColor = Color.White;
+            chartArea.AxisY.LabelStyle.ForeColor = Color.White;
+            chartArea.AxisX.MajorGrid.LineColor = Color.FromArgb(70, 110, 150);
+            chartArea.AxisY.MajorGrid.LineColor = Color.FromArgb(70, 110, 150);
+            chartMonitorTrend.ChartAreas.Add(chartArea);
+
+            Legend legend = new Legend("MainLegend");
+            legend.BackColor = Color.FromArgb(18, 63, 111);
+            legend.ForeColor = Color.White;
+            chartMonitorTrend.Legends.Add(legend);
+
+            Series okSeries = new Series("OK");
+            okSeries.ChartType = SeriesChartType.Line;
+            okSeries.BorderWidth = 3;
+            okSeries.Color = Color.FromArgb(255, 225, 120);
+
+            Series ngSeries = new Series("NG");
+            ngSeries.ChartType = SeriesChartType.Line;
+            ngSeries.BorderWidth = 2;
+            ngSeries.Color = Color.FromArgb(245, 245, 245);
+
+            chartMonitorTrend.Series.Add(okSeries);
+            chartMonitorTrend.Series.Add(ngSeries);
+        }
+
+        private static DataTable CreateProductDataTableSchema()
+        {
+            DataTable table = new DataTable();
+            table.Columns.Add("产品序号");
+            table.Columns.Add("测量值");
+            table.Columns.Add("产品状态");
+            table.Columns.Add("日期");
+            return table;
+        }
+
+        private static DataTable CreateMonitorSummaryTableSchema()
+        {
+            DataTable table = new DataTable();
+            table.Columns.Add("状态");
+            table.Columns.Add("测量值");
+            table.Columns.Add("产品情况");
+            return table;
+        }
+
+        private static DataTable CreateSettingTableSchema()
+        {
+            DataTable table = new DataTable();
+            table.Columns.Add("配置项");
+            table.Columns.Add("当前值");
+            return table;
         }
 
         private void LoadUserList()
@@ -251,53 +373,30 @@ namespace HTHSystem
                 return;
             }
 
-            if (activeButton == btnNavMonitor)
+            for (int i = 0; i < _navigationButtons.Length; i++)
             {
-                ShowModule(panelMonitorModule, btnNavMonitor);
-                return;
-            }
-
-            if (activeButton == btnNavData)
-            {
-                ShowModule(panelDataModule, btnNavData);
-                return;
-            }
-
-            if (activeButton == btnNavDevice)
-            {
-                ShowModule(panelDeviceModule, btnNavDevice);
-                return;
-            }
-
-            if (activeButton == btnNavUser)
-            {
-                ShowModule(panelUserModule, btnNavUser);
-                return;
-            }
-
-            if (activeButton == btnNavSetting)
-            {
-                ShowModule(panelSettingModule, btnNavSetting);
+                if (activeButton == _navigationButtons[i])
+                {
+                    ShowModule(i);
+                    return;
+                }
             }
         }
 
-        private void ShowModule(Panel targetPanel, Button activeButton)
+        private void ShowModule(int moduleIndex)
         {
-            panelMonitorModule.Visible = false;
-            panelDataModule.Visible = false;
-            panelDeviceModule.Visible = false;
-            panelUserModule.Visible = false;
-            panelSettingModule.Visible = false;
+            _currentModuleIndex = moduleIndex;
 
-            btnNavMonitor.BackColor = System.Drawing.Color.FromArgb(25, 76, 123);
-            btnNavData.BackColor = System.Drawing.Color.FromArgb(25, 76, 123);
-            btnNavDevice.BackColor = System.Drawing.Color.FromArgb(25, 76, 123);
-            btnNavUser.BackColor = System.Drawing.Color.FromArgb(25, 76, 123);
-            btnNavSetting.BackColor = System.Drawing.Color.FromArgb(25, 76, 123);
+            for (int i = 0; i < _modulePanels.Length; i++)
+            {
+                _modulePanels[i].Visible = i == moduleIndex;
+                _navigationButtons[i].BackColor = i == moduleIndex
+                    ? Color.FromArgb(16, 129, 255)
+                    : Color.FromArgb(25, 76, 123);
+            }
 
-            targetPanel.Visible = true;
-            targetPanel.BringToFront();
-            activeButton.BackColor = System.Drawing.Color.FromArgb(16, 129, 255);
+            _modulePanels[moduleIndex].BringToFront();
+            lblModuleCaption.Text = _navigationButtons[moduleIndex].Text;
         }
 
         private void btnNavExit_Click(object sender, EventArgs e)
@@ -313,6 +412,83 @@ namespace HTHSystem
         private void UpdateCurrentTime()
         {
             lblTimeValue.Text = DateTime.Now.ToString("yyyy年MM月dd日 HH:mm:ss");
+        }
+
+        private void btnFooterMinimize_Click(object sender, EventArgs e)
+        {
+            WindowState = FormWindowState.Minimized;
+        }
+
+        private void btnFooterSetting_Click(object sender, EventArgs e)
+        {
+            ShowModule(4);
+        }
+
+        private void btnPageLeft_Click(object sender, EventArgs e)
+        {
+            int nextIndex = _currentModuleIndex == 0 ? _modulePanels.Length - 1 : _currentModuleIndex - 1;
+            ShowModule(nextIndex);
+        }
+
+        private void btnPageRight_Click(object sender, EventArgs e)
+        {
+            int nextIndex = _currentModuleIndex == _modulePanels.Length - 1 ? 0 : _currentModuleIndex + 1;
+            ShowModule(nextIndex);
+        }
+
+        private void btnDataSearch_Click(object sender, EventArgs e)
+        {
+            ShowMessage("已按条件刷新数据列表。", false, CommonLogLevel.Info);
+        }
+
+        private void btnDataExport_Click(object sender, EventArgs e)
+        {
+            ShowMessage("已完成 CSV 导出示意操作。", false, CommonLogLevel.Info);
+        }
+
+        private void btnSaveSetting_Click(object sender, EventArgs e)
+        {
+            ShowMessage("已保存配置项：" + lblSettingSelectedName.Text + "。", false, CommonLogLevel.Info);
+        }
+
+        private void dgvSettings_SelectionChanged(object sender, EventArgs e)
+        {
+            UpdateSelectedSetting();
+        }
+
+        private void UpdateSelectedSetting()
+        {
+            if (dgvSettings.CurrentRow == null)
+            {
+                return;
+            }
+
+            object settingNameValue = dgvSettings.CurrentRow.Cells[0].Value;
+            object settingCurrentValue = dgvSettings.CurrentRow.Cells[1].Value;
+
+            string settingName = settingNameValue == null ? string.Empty : settingNameValue.ToString();
+            string settingValue = settingCurrentValue == null ? string.Empty : settingCurrentValue.ToString();
+
+            lblSettingSelectedName.Text = settingName;
+            txtSettingValue.Text = settingValue;
+            txtSettingDescription.Text = GetSettingDescription(settingName);
+        }
+
+        private static string GetSettingDescription(string settingName)
+        {
+            switch (settingName)
+            {
+                case "ConnectTimeout":
+                    return "连接超时时间，单位为秒，用于控制客户端与设备建立通信时的等待时长。";
+                case "IP":
+                    return "设备或服务端的目标 IP 地址，用于 TCP/Socket 通信连接。";
+                case "Port":
+                    return "通信端口号，决定数据采集服务监听或连接的端口。";
+                case "ScanPeriod":
+                    return "扫描周期，单位可按项目约定解释，用于控制轮询读取数据的间隔。";
+                default:
+                    return "当前配置项暂无说明。";
+            }
         }
 
     }
