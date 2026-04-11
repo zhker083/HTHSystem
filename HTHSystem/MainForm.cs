@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Windows.Forms;
 using BLL;
+using CommonLogHelper = LogHelper.LogHelper;
+using CommonLogLevel = LogHelper.LogLevel;
 using Models;
 
 namespace HTHSystem
@@ -13,8 +15,15 @@ namespace HTHSystem
         {
             _userService = new UserService();
             InitializeComponent();
+            InitializeLogOutput();
             InitializePermissionOptions();
             LoadUserList();
+            CommonLogHelper.LogInfo("主界面已初始化。");
+        }
+
+        private void InitializeLogOutput()
+        {
+            CommonLogHelper.InitializeTextBox(txtMessage);
         }
 
         private void InitializePermissionOptions()
@@ -33,11 +42,23 @@ namespace HTHSystem
         {
             ExecuteAction(() =>
             {
+                string account;
+                if (!TryGetAccount(out account))
+                {
+                    return;
+                }
+
+                string password;
+                if (!TryGetPassword(out password))
+                {
+                    return;
+                }
+
                 UserInfo user = new UserInfo
                 {
-                    Account = txtAccount.Text.Trim(),
-                    Password = txtPassword.Text,
-                    Permission = (Permission)cmbPermission.SelectedValue
+                    Account = account,
+                    Password = password,
+                    Permission = (Permission)cmbPermission.SelectedItem
                 };
 
                 int result = _userService.Register(user);
@@ -51,14 +72,26 @@ namespace HTHSystem
         {
             ExecuteAction(() =>
             {
-                UserInfo user = _userService.Login(txtAccount.Text.Trim(), txtPassword.Text);
+                string account;
+                if (!TryGetAccount(out account))
+                {
+                    return;
+                }
+
+                string password;
+                if (!TryGetPassword(out password))
+                {
+                    return;
+                }
+
+                UserInfo user = _userService.Login(account, password);
                 if (user == null)
                 {
                     ShowMessage("登录失败，账号或密码错误。");
                     return;
                 }
 
-                cmbPermission.SelectedValue = user.Permission;
+                cmbPermission.SelectedItem = user.Permission;
                 ShowMessage(string.Format("登录成功。账号：{0}，权限：{1}。", user.Account, user.Permission));
             });
         }
@@ -67,7 +100,13 @@ namespace HTHSystem
         {
             ExecuteAction(() =>
             {
-                bool exists = _userService.Exists(txtAccount.Text.Trim());
+                string account;
+                if (!TryGetAccount(out account))
+                {
+                    return;
+                }
+
+                bool exists = _userService.Exists(account);
                 ShowMessage(exists ? "账号已存在。" : "账号不存在。");
             });
         }
@@ -76,7 +115,13 @@ namespace HTHSystem
         {
             ExecuteAction(() =>
             {
-                UserInfo user = _userService.GetByAccount(txtAccount.Text.Trim());
+                string account;
+                if (!TryGetAccount(out account))
+                {
+                    return;
+                }
+
+                UserInfo user = _userService.GetByAccount(account);
                 if (user == null)
                 {
                     ShowMessage("未查询到该账号。", true);
@@ -84,7 +129,7 @@ namespace HTHSystem
                 }
 
                 txtAccount.Text = user.Account;
-                cmbPermission.SelectedValue = user.Permission;
+                cmbPermission.SelectedItem = user.Permission;
                 txtPassword.Clear();
                 ShowMessage(string.Format("查询成功。账号：{0}，权限：{1}。", user.Account, user.Permission));
             });
@@ -94,7 +139,13 @@ namespace HTHSystem
         {
             ExecuteAction(() =>
             {
-                int result = _userService.Delete(txtAccount.Text.Trim());
+                string account;
+                if (!TryGetAccount(out account))
+                {
+                    return;
+                }
+
+                int result = _userService.Delete(account);
                 LoadUserList();
                 txtPassword.Clear();
                 ShowMessage(result > 0 ? "删除成功。" : "未删除任何记录，请确认账号是否存在。", true);
@@ -115,8 +166,42 @@ namespace HTHSystem
             txtAccount.Clear();
             txtPassword.Clear();
             cmbPermission.SelectedIndex = 0;
-            txtMessage.Clear();
             txtAccount.Focus();
+            CommonLogHelper.LogInfo("已清空输入内容。");
+        }
+
+        private void btnLogTest_Click(object sender, EventArgs e)
+        {
+            CommonLogHelper.LogInfo("开始执行日志测试。");
+            CommonLogHelper.Log("UI", "这是一个日志测试信息。", CommonLogLevel.Info);
+            CommonLogHelper.Log("UI", "这是一个日志测试警告。", CommonLogLevel.Warn);
+            CommonLogHelper.Log("UI", "日志测试已完成。", CommonLogLevel.Info);
+        }
+
+        private bool TryGetAccount(out string account)
+        {
+            account = txtAccount.Text.Trim();
+            if (!string.IsNullOrWhiteSpace(account))
+            {
+                return true;
+            }
+
+            ShowMessage("请输入账号。", false, CommonLogLevel.Warn);
+            txtAccount.Focus();
+            return false;
+        }
+
+        private bool TryGetPassword(out string password)
+        {
+            password = txtPassword.Text;
+            if (!string.IsNullOrWhiteSpace(password))
+            {
+                return true;
+            }
+
+            ShowMessage("请输入密码。", false, CommonLogLevel.Warn);
+            txtPassword.Focus();
+            return false;
         }
 
         private void ExecuteAction(Action action)
@@ -127,19 +212,21 @@ namespace HTHSystem
             }
             catch (Exception ex)
             {
-                ShowMessage("操作失败：" + ex.Message);
+                CommonLogHelper.LogError("界面操作执行失败。", ex);
+                ShowMessage("操作失败：" + ex.Message, true, CommonLogLevel.Error);
             }
         }
 
-        private void ShowMessage(string message, bool appendDataSourceHint = false)
+        private void ShowMessage(string message, bool appendDataSourceHint = false, CommonLogLevel level = CommonLogLevel.Info)
         {
+            string finalMessage = message;
+
             if (appendDataSourceHint)
             {
-                txtMessage.Text = message + Environment.NewLine + "当前结果来自 UI -> BLL -> DAL -> SQL Server。";
-                return;
+                finalMessage = message + " 当前结果来自 UI -> BLL -> DAL -> SQL Server。";
             }
 
-            txtMessage.Text = message;
+            CommonLogHelper.Log("UI", finalMessage, level);
         }
 
     }

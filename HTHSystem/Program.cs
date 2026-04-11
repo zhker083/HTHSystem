@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using CommonLogHelper = LogHelper.LogHelper;
 
 namespace HTHSystem
 {
@@ -16,6 +17,20 @@ namespace HTHSystem
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+
+            try
+            {
+                CommonLogHelper.RegisterLog();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "日志系统初始化失败：" + ex.Message,
+                    "启动提示",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+            }
+
             Application.Run(new MainForm());
         }
     }

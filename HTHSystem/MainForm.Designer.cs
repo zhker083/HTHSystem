@@ -42,6 +42,7 @@
             this.btnDelete = new System.Windows.Forms.Button();
             this.btnLoadList = new System.Windows.Forms.Button();
             this.btnClear = new System.Windows.Forms.Button();
+            this.btnLogTest = new System.Windows.Forms.Button();
             this.dgvUsers = new System.Windows.Forms.DataGridView();
             this.lblMessage = new System.Windows.Forms.Label();
             this.txtMessage = new System.Windows.Forms.TextBox();
@@ -179,6 +180,16 @@
             this.btnClear.UseVisualStyleBackColor = true;
             this.btnClear.Click += new System.EventHandler(this.btnClear_Click);
             // 
+            // btnLogTest
+            // 
+            this.btnLogTest.Location = new System.Drawing.Point(521, 154);
+            this.btnLogTest.Name = "btnLogTest";
+            this.btnLogTest.Size = new System.Drawing.Size(120, 30);
+            this.btnLogTest.TabIndex = 14;
+            this.btnLogTest.Text = "日志测试";
+            this.btnLogTest.UseVisualStyleBackColor = true;
+            this.btnLogTest.Click += new System.EventHandler(this.btnLogTest_Click);
+            // 
             // dgvUsers
             // 
             this.dgvUsers.AllowUserToAddRows = false;
@@ -196,7 +207,7 @@
             this.dgvUsers.RowTemplate.Height = 27;
             this.dgvUsers.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dgvUsers.Size = new System.Drawing.Size(918, 291);
-            this.dgvUsers.TabIndex = 14;
+            this.dgvUsers.TabIndex = 15;
             // 
             // lblMessage
             // 
@@ -205,7 +216,7 @@
             this.lblMessage.Name = "lblMessage";
             this.lblMessage.Size = new System.Drawing.Size(65, 12);
             this.lblMessage.TabIndex = 15;
-            this.lblMessage.Text = "执行结果：";
+            this.lblMessage.Text = "日志输出：";
             // 
             // txtMessage
             // 
@@ -227,6 +238,7 @@
             this.Controls.Add(this.txtMessage);
             this.Controls.Add(this.lblMessage);
             this.Controls.Add(this.dgvUsers);
+            this.Controls.Add(this.btnLogTest);
             this.Controls.Add(this.btnClear);
             this.Controls.Add(this.btnLoadList);
             this.Controls.Add(this.btnDelete);
@@ -267,6 +279,7 @@
         private System.Windows.Forms.Button btnDelete;
         private System.Windows.Forms.Button btnLoadList;
         private System.Windows.Forms.Button btnClear;
+        private System.Windows.Forms.Button btnLogTest;
         private System.Windows.Forms.DataGridView dgvUsers;
         private System.Windows.Forms.Label lblMessage;
         private System.Windows.Forms.TextBox txtMessage;
