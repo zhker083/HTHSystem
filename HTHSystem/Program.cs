@@ -31,7 +31,7 @@ namespace HTHSystem
                     MessageBoxIcon.Warning);
             }
 
-            Application.Run(new MainForm());
+            Application.Run(new FormUserLogin());
         }
     }
 }

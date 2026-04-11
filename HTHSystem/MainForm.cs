@@ -17,8 +17,22 @@ namespace HTHSystem
             InitializeComponent();
             InitializeLogOutput();
             InitializePermissionOptions();
+            InitializeNavigation();
+            InitializeClock();
             LoadUserList();
             CommonLogHelper.LogInfo("主界面已初始化。");
+        }
+
+        private void InitializeNavigation()
+        {
+            ShowModule(panelUserModule, btnNavUser);
+            lblSystemStatusValue.Text = "已启动";
+        }
+
+        private void InitializeClock()
+        {
+            UpdateCurrentTime();
+            timerClock.Start();
         }
 
         private void InitializeLogOutput()
@@ -227,6 +241,78 @@ namespace HTHSystem
             }
 
             CommonLogHelper.Log("UI", finalMessage, level);
+        }
+
+        private void NavigationButton_Click(object sender, EventArgs e)
+        {
+            Button activeButton = sender as Button;
+            if (activeButton == null)
+            {
+                return;
+            }
+
+            if (activeButton == btnNavMonitor)
+            {
+                ShowModule(panelMonitorModule, btnNavMonitor);
+                return;
+            }
+
+            if (activeButton == btnNavData)
+            {
+                ShowModule(panelDataModule, btnNavData);
+                return;
+            }
+
+            if (activeButton == btnNavDevice)
+            {
+                ShowModule(panelDeviceModule, btnNavDevice);
+                return;
+            }
+
+            if (activeButton == btnNavUser)
+            {
+                ShowModule(panelUserModule, btnNavUser);
+                return;
+            }
+
+            if (activeButton == btnNavSetting)
+            {
+                ShowModule(panelSettingModule, btnNavSetting);
+            }
+        }
+
+        private void ShowModule(Panel targetPanel, Button activeButton)
+        {
+            panelMonitorModule.Visible = false;
+            panelDataModule.Visible = false;
+            panelDeviceModule.Visible = false;
+            panelUserModule.Visible = false;
+            panelSettingModule.Visible = false;
+
+            btnNavMonitor.BackColor = System.Drawing.Color.FromArgb(25, 76, 123);
+            btnNavData.BackColor = System.Drawing.Color.FromArgb(25, 76, 123);
+            btnNavDevice.BackColor = System.Drawing.Color.FromArgb(25, 76, 123);
+            btnNavUser.BackColor = System.Drawing.Color.FromArgb(25, 76, 123);
+            btnNavSetting.BackColor = System.Drawing.Color.FromArgb(25, 76, 123);
+
+            targetPanel.Visible = true;
+            targetPanel.BringToFront();
+            activeButton.BackColor = System.Drawing.Color.FromArgb(16, 129, 255);
+        }
+
+        private void btnNavExit_Click(object sender, EventArgs e)
+        {
+            Close();
+        }
+
+        private void timerClock_Tick(object sender, EventArgs e)
+        {
+            UpdateCurrentTime();
+        }
+
+        private void UpdateCurrentTime()
+        {
+            lblTimeValue.Text = DateTime.Now.ToString("yyyy年MM月dd日 HH:mm:ss");
         }
 
     }

@@ -26,5 +26,50 @@ namespace HTHSystem.Properties
                 return defaultInstance;
             }
         }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string RememberAccount
+        {
+            get
+            {
+                return ((string)(this["RememberAccount"]));
+            }
+            set
+            {
+                this["RememberAccount"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string RememberPassword
+        {
+            get
+            {
+                return ((string)(this["RememberPassword"]));
+            }
+            set
+            {
+                this["RememberPassword"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool RememberPasswordEnabled
+        {
+            get
+            {
+                return ((bool)(this["RememberPasswordEnabled"]));
+            }
+            set
+            {
+                this["RememberPasswordEnabled"] = value;
+            }
+        }
     }
 }
